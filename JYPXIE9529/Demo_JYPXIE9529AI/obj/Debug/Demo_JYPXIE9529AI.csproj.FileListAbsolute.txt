@@ -1,0 +1,10 @@
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\bin\Debug\Demo_JYPXIE9529AI.exe
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\bin\Debug\Demo_JYPXIE9529AI.pdb
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\bin\Debug\JYPXIE9529.dll
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\bin\Debug\JYPXIE9529.pdb
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\obj\Debug\Demo_JYPXIE9529AI.csprojResolveAssemblyReference.cache
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\obj\Debug\Demo_JYPXIE9529AI.Properties.Resources.resources
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\obj\Debug\Demo_JYPXIE9529AI.csproj.GenerateResource.Cache
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\obj\Debug\Demo_JYPXIE9529AI.exe
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\obj\Debug\Demo_JYPXIE9529AI.pdb
+D:\Workspace\Code\hw\JYPXIE9529\Demo_JYPXIE9529AI\obj\Debug\Demo_JYPXIE9529AI.AIDemo.resources

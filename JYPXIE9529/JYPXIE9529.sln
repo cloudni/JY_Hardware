@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPXIE9529", "JYPXIE9529\JYPXIE9529.csproj", "{1DF6E9E2-4FE0-429B-94BA-80CB2958D1B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo_JYPXIE9529AI", "Demo_JYPXIE9529AI\Demo_JYPXIE9529AI.csproj", "{8E552B1C-1EF8-476D-94C2-A28455E7C979}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1DF6E9E2-4FE0-429B-94BA-80CB2958D1B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DF6E9E2-4FE0-429B-94BA-80CB2958D1B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DF6E9E2-4FE0-429B-94BA-80CB2958D1B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DF6E9E2-4FE0-429B-94BA-80CB2958D1B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E552B1C-1EF8-476D-94C2-A28455E7C979}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E552B1C-1EF8-476D-94C2-A28455E7C979}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E552B1C-1EF8-476D-94C2-A28455E7C979}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E552B1C-1EF8-476D-94C2-A28455E7C979}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
