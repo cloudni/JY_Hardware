@@ -820,6 +820,16 @@ namespace JYPXIE9529
             return err;
         }
 
+        public int DSA_AI_ConfigChannel(ushort channelID)
+        {
+            return JYPXIE9529Import.DSA_AI_9529_ConfigChannel(_devHandle.CardID, channelID, true, JYPXIE9529Import.AD_B_10_V, JYPXIE9529Import.P9529_AI_Diff | JYPXIE9529Import.P9529_AI_Coupling_DC);
+        }
+
+        public int DSA_TRG_Config()
+        {
+            return JYPXIE9529Import.DSA_TRG_Config(_devHandle.CardID, JYPXIE9529Import.P9529_TRG_AI, JYPXIE9529Import.P9529_TRG_SRC_NOWAIT, 0, 0);
+        }
+
         #endregion
 
         #region -------------私有方法定义-------------

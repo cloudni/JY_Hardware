@@ -178,8 +178,24 @@ namespace Demo_JYPXIE9529AI
                 {
                     throw new Exception("初始化失败，请检查Speed Rate设置！");
                 }
-                _aiTask.Mode = (JYPXIE9529AITask.EnumAIMode)(SampleMode.SelectedIndex + 1); //配置采集模式
 
+                foreach(JYPXIE9529AITask.AIChnParam ch in _aiTask.Channels)
+                {
+                    int err = JYPXIE9529AITask.DSA_AI_9529_ConfigChannel((ushort)ch.ChnID);
+                    if (err < 0)
+                    {
+                        throw new Exception("DSA_AI_9529_ConfigChannel Falied");
+                        goto err_ret;
+                    }
+                }
+
+                int err = JYPXIE9529AITask.DSA_TRG_Config(card, P9527_TRG_AI, P9527_TRG_SRC_NOWAIT, 0, 0);
+                if (err < 0)
+                {
+                    throw new Exception("DSA_TRG_Config Falied");
+                }
+
+                _aiTask.Mode = (JYPXIE9529AITask.EnumAIMode)(SampleMode.SelectedIndex + 1); //配置采集模式
                 switch (_aiTask.Mode)
                 {
                     case JYPXIE9529AITask.EnumAIMode.Continuous:
