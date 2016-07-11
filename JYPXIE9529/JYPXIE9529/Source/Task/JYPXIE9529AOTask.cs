@@ -42,7 +42,7 @@ namespace JYPXIE9529
             _waitUntilDoneEvent = new WaitEvent(() => _taskDone);
             _eventQueue = new Queue<WaitEvent>(8);
 
-            _AI_EnableIEPE = false;
+            
         }
 
         #region -----------------私有字段------------------
@@ -126,7 +126,7 @@ namespace JYPXIE9529
         /// </summary>
         private bool _isUnderflow;
 
-        private bool _AI_EnableIEPE;
+        
 
         #endregion
 
@@ -255,11 +255,7 @@ namespace JYPXIE9529
             set { _triggerParam = value; }
         }
 
-        public bool AI_EnableIEPE
-        {
-            get { return _AI_EnableIEPE; }
-            set { _AI_EnableIEPE = value; }
-        }
+        
         #endregion               
 
         #region --------------公共方法定义-----------------
@@ -553,11 +549,6 @@ namespace JYPXIE9529
             Stop();
         }
 
-        public int DSA_ConfigSpeedRate()
-        {
-            int err = JYPXIE9529Import.DSA_ConfigSpeedRate(_devHandle.CardID, 0, 0, 54000, out _adjustedSampleRate);
-            return err;
-        }
         #endregion
 
         #region -------------私有方法定义-------------
