@@ -32,6 +32,7 @@ namespace JYPXIE9529
 
             _clkSrc = EnumAOClkSrc.Internal;
             _clkEdge = EnumAOClkEdge.Rising;
+            _triggerParam = new CAOTriggerParam();
             _triggerParam.TriggerType = EnumAOTriggerType.Immediate;
 
             _bufLenInSamples = 0; //默认为0，任务启动的时候如果用户没有配置过就根据采样率设置为缓冲10s
@@ -40,6 +41,8 @@ namespace JYPXIE9529
 
             _waitUntilDoneEvent = new WaitEvent(() => _taskDone);
             _eventQueue = new Queue<WaitEvent>(8);
+
+            _AI_EnableIEPE = false;
         }
 
         #region -----------------私有字段------------------
@@ -122,6 +125,8 @@ namespace JYPXIE9529
         /// 缓冲区下溢出标志
         /// </summary>
         private bool _isUnderflow;
+
+        private bool _AI_EnableIEPE;
 
         #endregion
 
@@ -250,6 +255,11 @@ namespace JYPXIE9529
             set { _triggerParam = value; }
         }
 
+        public bool AI_EnableIEPE
+        {
+            get { return _AI_EnableIEPE; }
+            set { _AI_EnableIEPE = value; }
+        }
         #endregion               
 
         #region --------------公共方法定义-----------------
@@ -541,6 +551,12 @@ namespace JYPXIE9529
         ~JYPXIE9529AOTask()
         {
             Stop();
+        }
+
+        public int DSA_ConfigSpeedRate()
+        {
+            int err = JYPXIE9529Import.DSA_ConfigSpeedRate(_devHandle.CardID, 0, 0, 54000, out _adjustedSampleRate);
+            return err;
         }
         #endregion
 

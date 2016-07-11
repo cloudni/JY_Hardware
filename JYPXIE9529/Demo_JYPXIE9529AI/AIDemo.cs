@@ -174,6 +174,10 @@ namespace Demo_JYPXIE9529AI
                 }
 
                 _aiTask.SampleRate = double.Parse(SampleRate.Text);  //配置采样率
+                if (_aiTask.DSA_ConfigSpeedRate() < 0)
+                {
+                    throw new Exception("初始化失败，请检查Speed Rate设置！");
+                }
                 _aiTask.Mode = (JYPXIE9529AITask.EnumAIMode)(SampleMode.SelectedIndex + 1); //配置采集模式
 
                 switch (_aiTask.Mode)

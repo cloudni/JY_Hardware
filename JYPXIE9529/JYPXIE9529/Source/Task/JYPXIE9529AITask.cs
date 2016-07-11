@@ -32,6 +32,7 @@ namespace JYPXIE9529
 
             _clkSrc = EnumAIClkSrc.Internal;
             _clkEdge = EnumAIClkEdge.Rising;
+            TriggerParam = new CAITriggerParam();
             TriggerParam.TriggerType = EnumAITriggerType.Immediate;
 
             _bufLenInSamples = (int)(_adjustedSampleRate * 20); //默认缓冲20s钟
