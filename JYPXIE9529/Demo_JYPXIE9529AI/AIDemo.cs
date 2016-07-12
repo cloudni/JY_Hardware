@@ -181,16 +181,13 @@ namespace Demo_JYPXIE9529AI
 
                 foreach(JYPXIE9529AITask.AIChnParam ch in _aiTask.Channels)
                 {
-                    int err = JYPXIE9529AITask.DSA_AI_9529_ConfigChannel((ushort)ch.ChnID);
-                    if (err < 0)
+                    if (_aiTask.DSA_AI_ConfigChannel((ushort)ch.ChnID) < 0)
                     {
                         throw new Exception("DSA_AI_9529_ConfigChannel Falied");
-                        goto err_ret;
                     }
                 }
 
-                int err = JYPXIE9529AITask.DSA_TRG_Config(card, P9527_TRG_AI, P9527_TRG_SRC_NOWAIT, 0, 0);
-                if (err < 0)
+                if (_aiTask.DSA_TRG_Config() < 0)
                 {
                     throw new Exception("DSA_TRG_Config Falied");
                 }

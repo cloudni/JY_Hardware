@@ -696,7 +696,7 @@ namespace JYPXIE9529
         [DllImport("DSA-Dask.dll")]
         public static extern short DSA_AI_ContBufferSetup(ushort CardNumber, IntPtr Buffer, uint ReadCount, out ushort BufferId);
         [DllImport("DSA-Dask.dll")]
-        public static extern short DSA_AI_ContReadChannel(ushort CardNumber, ushort Channel, ushort AdRange, uint[] BufferId, uint ReadCount, double SampleRate, ushort SyncMode);
+        public static extern short DSA_AI_ContReadChannel(ushort CardNumber, ushort Channel, ushort AdRange, uint BufferId, uint ReadCount, double SampleRate, ushort SyncMode);
         [DllImport("DSA-Dask.dll")]
         public static extern short DSA_AI_ContReadChannelToFile(ushort CardNumber, ushort Channel, ushort AdRange, string FileName, uint ReadCount, double SampleRate, ushort SyncMode);
         [DllImport("DSA-Dask.dll")]

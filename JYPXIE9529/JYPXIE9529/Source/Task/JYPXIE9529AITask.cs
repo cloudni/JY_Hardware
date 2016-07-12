@@ -50,6 +50,15 @@ namespace JYPXIE9529
         #region -------------------私有字段-------------------------
         //添加需要使用的私有属性字段
         private bool _AI_EnableIEPE;
+        private static int AI_SAMPLE_COUNT = 65536;
+        private static int AI_CHANNEL_COUNT = 8;
+        private static int AI_SAMPLE_RATE = 54000; //54Khz
+
+        private int AI_ReadCount = JYPXIE9529AITask.AI_SAMPLE_COUNT;
+	    private IntPtr RDBuffer0;
+        private IntPtr RDBuffer1;
+        private ushort BufferId0;
+        private ushort BufferId1;
 
         /// <summary>
         /// 操作硬件的对象
@@ -710,6 +719,29 @@ namespace JYPXIE9529
         /// <remarks> 根据配置启动任务</remarks>
         public int Start()
         {
+            /*Enable Double Buffer Mode*/
+            if (JYPXIE9529Import.DSA_AI_AsyncDblBufferMode(_devHandle.CardID, true) != 0)
+            {
+                throw new Exception("AI_AsyncDblBufferMode Error");
+            }
+
+            /*Setup Buffer for AI DMA Transfer*/
+            if (JYPXIE9529Import.DSA_AI_ContBufferSetup(_devHandle.CardID, RDBuffer0, (uint)AI_ReadCount, out BufferId0) != 0)
+            {
+                throw new Exception("AI_ContBufferSetup0 Error");
+            }
+
+            if (JYPXIE9529Import.DSA_AI_ContBufferSetup(_devHandle.CardID, RDBuffer1, (uint)AI_ReadCount, out BufferId1) != 0)
+            {
+                throw new Exception("AI_ContBufferSetup1 Error");
+            }
+
+            if (JYPXIE9529Import.DSA_AI_ContReadChannel(_devHandle.CardID, (ushort)Channels[0].ChnID, (ushort)0, (uint)BufferId0, (uint)AI_ReadCount, (double)0, JYPXIE9529Import.ASYNCH_OP) != 0)
+            {
+                throw new Exception("DSA_AI_ContReadChannel");
+            }
+
+
             int ret = JYErrorCode.NoError;
             _samplesFetchedPerChannel = 0;
             _isOverflow = false;
@@ -825,7 +857,7 @@ namespace JYPXIE9529
             return JYPXIE9529Import.DSA_AI_9529_ConfigChannel(_devHandle.CardID, channelID, true, JYPXIE9529Import.AD_B_10_V, JYPXIE9529Import.P9529_AI_Diff | JYPXIE9529Import.P9529_AI_Coupling_DC);
         }
 
-        public int DSA_TRG_Config()
+        public short DSA_TRG_Config()
         {
             return JYPXIE9529Import.DSA_TRG_Config(_devHandle.CardID, JYPXIE9529Import.P9529_TRG_AI, JYPXIE9529Import.P9529_TRG_SRC_NOWAIT, 0, 0);
         }
