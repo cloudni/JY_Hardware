@@ -1,0 +1,5 @@
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\JYPXIE69529\bin\Debug\JYPXIE69529.dll
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\JYPXIE69529\bin\Debug\JYPXIE69529.pdb
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\JYPXIE69529\obj\Debug\JYPXIE69529.csprojResolveAssemblyReference.cache
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\JYPXIE69529\obj\Debug\JYPXIE69529.dll
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\JYPXIE69529\obj\Debug\JYPXIE69529.pdb

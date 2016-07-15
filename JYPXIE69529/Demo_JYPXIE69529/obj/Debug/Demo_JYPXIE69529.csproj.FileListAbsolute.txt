@@ -1,0 +1,10 @@
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\bin\Debug\Demo_JYPXIE69529.exe
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\bin\Debug\Demo_JYPXIE69529.pdb
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\bin\Debug\JYPXIE69529.dll
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\bin\Debug\JYPXIE69529.pdb
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\obj\Debug\Demo_JYPXIE69529.csprojResolveAssemblyReference.cache
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\obj\Debug\Demo_JYPXIE69529.AIDemo.resources
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\obj\Debug\Demo_JYPXIE69529.Properties.Resources.resources
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\obj\Debug\Demo_JYPXIE69529.csproj.GenerateResource.Cache
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\obj\Debug\Demo_JYPXIE69529.exe
+D:\Workspace\Code\JY_Hardware\trunk\JYPXIE69529\Demo_JYPXIE69529\obj\Debug\Demo_JYPXIE69529.pdb
