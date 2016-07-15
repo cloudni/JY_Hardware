@@ -745,6 +745,7 @@ namespace JYPXIE69529
                     {
                         _enableAIDbfMode = true; //使用双缓冲模式
                     }
+                    _AIDoubleBuffSize = GetNearestOfMBlocksize((uint)_samplesToAcquire, _devHandle.AIDBFBlockSize);
                 }
                 else //需要重触发，则直接使用
                 {
@@ -778,7 +779,140 @@ namespace JYPXIE69529
         /// </summary>
         private void ThdAcquireData()
         {
+            JYLog.Print("AI Task Started...");
+            short[] buffer = null;
+            if (_enableAIDbfMode == true)
+            {
+                buffer = new short[_AIDoubleBuffSize * _channels.Count / 2];
+            }
+            else
+            {
+                buffer = new short[_AIDoubleBuffSize * _channels.Count];
+            }
+            int readCnt = 0;
+            while (TaskDone == false)
+            {
+                //To Add: 以下添加从缓冲区取数据到本地缓冲区的代码，同时需要修改_samplesFetchedPerChannel的值
+                if ((readCnt = FetchBuffer(ref buffer)) > 0)
+                {
+                    _samplesFetchedPerChannel += readCnt / _channels.Count;
+                    EnQueueElems(buffer);
+                    if (_acqMode == EnumAIMode.Finite)
+                    {
+                        if (_samplesFetchedPerChannel >= _samplesToAcquire)
+                        {
+                            JYLog.Print("Finite Task Done!");
+                            TaskDone = true;
+                        }
+                    }
+                }
+                ActivateWaitEvents(); //激活等待事件
+                Thread.Sleep(1);
+            }
+            JYLog.Print("Fetch data Thread Exit!");
+        }
 
+        /// <summary>
+        /// 从本地缓冲区中取采集的数据
+        /// </summary>
+        /// <param name="retbuffer">取到的数据，多个通道是interleaved的</param>
+        /// <returns>
+        /// 小于0：失败，具体看错误代码
+        /// 大于0：成功，值代表每通道返回的样点数
+        /// </returns>
+        private int FetchBuffer(ref short[] retbuffer)
+        {
+            if (_aiStarted == false)
+            {
+                JYLog.Print("Error, AI 未启动！");
+                return -1;
+            }
+            short err = 0;
+            bool bStopped, bHalfReady;
+
+            if (_enableAIDbfMode == true)
+            {
+                err = JYPXIE69529Import.DSA_AI_AsyncDblBufferHalfReady(_devHandle.CardID, out bHalfReady, out bStopped);
+                if (bHalfReady)
+                {
+                    if (err != JYPXIE69529Import.NoError)
+                    {
+                        return err;
+                    }
+                    else
+                    {
+                        // short[] buffer = new short[_AIDoubleBuffSize * _channels.Count / 2];
+                        if (_aiBufferID == 0)
+                        {
+                            Marshal.Copy(_AIReadbuffer_alignment1, retbuffer, 0, (int)(_AIDoubleBuffSize * _channels.Count / 2));
+                        }
+                        else
+                        {
+                            Marshal.Copy(_AIReadbuffer_alignment2, retbuffer, 0, (int)(_AIDoubleBuffSize * _channels.Count / 2));
+                        }
+                        _aiBufferID = (ushort)((_aiBufferID + 1) % 2);
+                        return (int)_AIDoubleBuffSize * _channels.Count / 2;
+                    }
+                }
+            }
+            else
+            {
+                uint dwAccessCnt;
+                uint startPos;
+                err = JYPXIE69529Import.DSA_AI_AsyncCheck(_devHandle.CardID, out bStopped, out dwAccessCnt);
+                if (err != JYPXIE69529Import.NoError)
+                {
+                    return err;
+                }
+
+                if (bStopped)
+                {
+                    err = JYPXIE69529Import.DSA_AI_AsyncClear(_devHandle.CardID, out dwAccessCnt);
+                    if (err != JYPXIE69529Import.NoError)
+                    {
+                        return err;
+                    }
+
+                    //short[] buffer = new short[_AIDoubleBuffSize * _channels.Count];
+                    Marshal.Copy(_AIReadbuffer_alignment1, retbuffer, 0, (int)(_AIDoubleBuffSize * _channels.Count));
+                    //retbuffer = (ushort[])((object)buffer);
+                    return (int)_AIDoubleBuffSize * _channels.Count;
+                }
+            }
+
+            return JYErrorCode.NoError;
+        }
+
+        /// <summary>
+        /// 数据放入队列尾部
+        /// </summary>
+        /// <param name="buffer"></param>
+        private void EnQueueElems(short[] buffer)
+        {
+            if (_localBuffer.NumOfElement + buffer.Length > _bufLenInSamples * _channels.Count)
+            {
+                _isOverflow = true;
+                return;
+            }
+            _localBuffer.Enqueue(buffer);
+        }
+
+        /// <summary>
+        /// 激活等待事件
+        /// </summary>
+        private void ActivateWaitEvents()
+        {
+            WaitEvent waitEvent;
+            for (int i = 0; i < EventQueue.Count; i++)
+            {
+                waitEvent = EventQueue.Dequeue();
+                if (!waitEvent.IsEnabled) continue; //Just Dequeue when no one is waiting
+
+                if (TaskDone || waitEvent.ConditionHandler())
+                    waitEvent.Set();
+                else
+                    EventQueue.Enqueue(waitEvent);
+            }
         }
 
         /// <summary>
@@ -1033,7 +1167,7 @@ namespace JYPXIE69529
 
                     _devHandle.AIReserved = true;
                     ret = StartContAI();
-                    /*if (ret == 0)
+                    if (ret == 0)
                     {
                         JYLog.Print("AI Started OK!");
                         TaskDone = false;
@@ -1042,11 +1176,184 @@ namespace JYPXIE69529
                     else
                     {
                         _devHandle.AIReserved = false;
-                    }*/
+                    }
                 }
 
                 return ret;
             }
+        }
+
+        /// <summary>
+        /// 读取数据，按列返回采集到的电压值
+        /// </summary>
+        /// <param name="buffer">用户缓冲区数组</param>
+        /// <param name="bufLen">用户缓冲区能容纳的每通道样点数</param>
+        /// <param name="timeout">当数据不足时，最多等待的时间（单位：ms）</param>
+        /// <param name="readLen">每通道实际获取的样点数</param>
+        /// <param name="Deterministic">是否返回确定性结果</param>
+        /// <param name="timeStamp">读回的第一个样点对应的时间戳</param>        
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>若缓冲区内可读取数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若任务已结束，则直接读取缓冲区内的剩余数据；否则，参考下一条。</item>
+        /// <item>等待数据，在timeout时间内，若数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若等待timeout时间后，缓冲区数据量仍未达到SamplesPerChannel，则抛出超时异常；抛出异常前，依据Deterministic的值，若为false，则读取缓冲区内的所有数据，否则不读取数据。</item>
+        /// </list>
+        /// </remarks>
+        /// <returns>
+        /// 小于0：实际错误代码
+        /// 大于0：实际读到的每通道点数
+        /// </returns>
+        public int ReadData(ref double[,] Buf, int SamplesPerChannel, bool Deterministic, int timeout)
+        {
+            int ret = 0;
+            short[,] TmpBuf = new short[SamplesPerChannel, _channels.Count];
+            ret = ReadRawData(ref TmpBuf, SamplesPerChannel, Deterministic, timeout);
+
+            /*if (ret == 0)
+            {
+                return ScaleRawData(TmpBuf, Buf);
+            }*/
+            return ret;
+        }
+
+        /// <summary>
+        /// 读取数据，按列返回采集到的电压值
+        /// </summary>
+        /// <param name="Buf">用户缓冲区数组</param>
+        /// <param name="SamplesPerChannel">用户缓冲区能容纳的每通道样点数</param>
+        /// <param name="Deterministic">是否返回确定性结果</param>
+        /// <param name="timeout">当数据不足时，最多等待的时间（单位：ms）</param>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>若缓冲区内可读取数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若任务已结束，则直接读取缓冲区内的剩余数据；否则，参考下一条。</item>
+        /// <item>等待数据，在timeout时间内，若数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若等待timeout时间后，缓冲区数据量仍未达到SamplesPerChannel，则抛出超时异常；抛出异常前，依据Deterministic的值，若为false，则读取缓冲区内的所有数据，否则不读取数据。</item>
+        /// </list>        
+        /// </remarks>
+        /// <returns>
+        /// 小于0：实际错误代码
+        /// 大于0：实际读到的每通道点数
+        /// </returns>
+        public int ReadData(ref double[] Buf, int SamplesPerChannel, bool Deterministic, int timeout)
+        {
+            int ret = 0;
+            short[] TmpBuf = new short[SamplesPerChannel * _channels.Count];
+            ret = ReadRawData(ref TmpBuf, SamplesPerChannel, Deterministic, timeout);
+
+            /*if (ret == 0)
+            {
+                return ScaleRawData(TmpBuf, Buf);
+
+            }*/
+            return ret;
+        }
+
+        /// <summary>
+        /// 读取数据，按列返回采集到的电压值
+        /// </summary>
+        /// <param name="Buf">用户缓冲区数组</param>
+        /// <param name="SamplesPerChannel">用户缓冲区能容纳的每通道样点数</param>
+        /// <param name="Deterministic">是否返回确定性结果</param>
+        /// <param name="timeout">超时时间</param>  
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>若缓冲区内可读取数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若任务已结束，则直接读取缓冲区内的剩余数据；否则，参考下一条。</item>
+        /// <item>等待数据，在timeout时间内，若数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若等待timeout时间后，缓冲区数据量仍未达到SamplesPerChannel，则抛出超时异常；抛出异常前，依据Deterministic的值，若为false，则读取缓冲区内的所有数据，否则不读取数据。</item>
+        /// </list>
+        public int ReadRawData(ref short[,] Buf, int SamplesPerChannel, bool Deterministic, int timeout)
+        {
+            if (Mode == EnumAIMode.Single)
+            {
+                return JYErrorCode.CannotCall;
+            }
+            else if (_taskDone && SamplesPerChannel > AvailableSamples)
+            {
+                return JYErrorCode.IncorrectCallOrder;
+            }
+
+            if (SamplesPerChannel <= 0)
+            {
+                return JYErrorCode.ErrorParam; //数组长度不够
+            }
+            if ((Buf.GetLength(1) < _channels.Count || Buf.GetLength(0) < SamplesPerChannel))
+            {
+                return JYErrorCode.UserBufferError;
+            }
+
+            bool isTimeout = false;
+            int retSamples = 0;
+            lock (_waitLock) //防止多个线程同时读取；要求“排队”读取。
+            {
+                //To Add: 等待缓冲区内的数据足够之后进行读取
+                // Handle Wait & TaskDone
+                WaitEvent waitEvent = new WaitEvent(() => TaskDone || (AvailableSamples >= SamplesPerChannel));
+                if (!waitEvent.EnqueueWait(EventQueue, timeout))
+                {
+                    isTimeout = true;
+                }
+                int availableSamples = AvailableSamples;
+                if (isTimeout == false && availableSamples >= SamplesPerChannel)
+                {
+                    retSamples = SamplesPerChannel;
+                }
+                else if (isTimeout == true && Deterministic == false)
+                {
+                    retSamples = availableSamples;
+                }
+                else if (isTimeout == true && Deterministic == true)
+                {
+                    JYLog.Print("读取超时，需要返回确定性结果！");
+                    return JYErrorCode.TimeOut;
+                }
+                _localBuffer.Dequeue(ref Buf, retSamples * _channels.Count);
+
+            }
+
+            //缓冲区队列溢出
+            if (_isOverflow)
+            {
+                _isOverflow = false;
+                return JYErrorCode.BufferOverflow;
+            }
+            if (isTimeout)
+            {
+                return JYErrorCode.TimeOut;
+            }
+            return JYErrorCode.NoError;
+        }
+
+        /// <summary>
+        /// 读取数据，按列返回采集到的电压值
+        /// </summary>
+        /// <param name="Buf">用户缓冲区数组</param>
+        /// <param name="SamplesPerChannel">用户缓冲区能容纳的每通道样点数</param>
+        /// <param name="Deterministic">是否返回确定性结果</param>
+        /// <param name="timeout">超时时间</param>  
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>若缓冲区内可读取数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若任务已结束，则直接读取缓冲区内的剩余数据；否则，参考下一条。</item>
+        /// <item>等待数据，在timeout时间内，若数据量达到SamplesPerChannel，则直接读取数据；否则，参考下一条。</item>
+        /// <item>若等待timeout时间后，缓冲区数据量仍未达到SamplesPerChannel，则抛出超时异常；抛出异常前，依据Deterministic的值，若为false，则读取缓冲区内的所有数据，否则不读取数据。</item>
+        /// </list>
+        /// <returns>
+        /// 小于0：实际错误代码
+        /// 大于0：实际读到的每通道点数
+        /// </returns> 
+        public int ReadRawData(ref short[] Buf, int SamplesPerChannel, bool Deterministic, int timeout)
+        {
+            var buf = new short[SamplesPerChannel, _channels.Count];
+            int ret = ReadRawData(ref buf, SamplesPerChannel, Deterministic, timeout);
+            if (ret > 0)
+            {
+                Buffer.BlockCopy(buf, 0, Buf, 0, ret * _channels.Count * sizeof(short));
+            }
+
+            return ret;
         }
         #endregion
     }

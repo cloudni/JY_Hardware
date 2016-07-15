@@ -117,5 +117,16 @@ namespace Demo_JYPXIE69529
                 _aiStarted = false;
             }
         }
+
+        private void ContSamplesTimer_Tick(object sender, EventArgs e)
+        {
+            ContSamplesTimer.Enabled = false;
+            int len = (int)_aiTask.SampleRate / 2;
+            double[,] data = new double[len, 1];
+            //从任务缓冲区读取采集到的数据
+            _aiTask.ReadData(data, len, out readLen, -1);
+            Display(data);
+            ContSamplesTimer.Enabled = true;
+        }
     }
 }
